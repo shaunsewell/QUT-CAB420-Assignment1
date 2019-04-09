@@ -126,8 +126,96 @@ for i=K_Values
     % Plot the current models predictions
     yline = predict(learner, xline);
     plot(xline, yline, '', 'DisplayName', strcat('K=', num2str(i)));
-    pause;
 end
 
 %% 3. Hold-out and Cross-validation
+
+% (a) compute the MSE of the test data on a model trained on only the first
+% 20 training data examples for k = 1, 2, 3, . . . , 100. Plot both train
+% and test MSE versus k on a log-log scale first 20 training points
+
+X_Training_20 = Xtr(1:20, :); Y_Training_20 = Ytr(1:20, :);
+
+% Matrix for storing the results
+MSE_Training_Matrix = zeros(100,3);
+MSE_Test_Matrix = zeros(100, 3);
+
+for k=1:100
+    
+    % Create model based on the first 20 training samples
+    learner_20 = knnRegress(k, X_Training_20, Y_Training_20);
+    % Generate some predictions based on the previous model
+    %Y_Prediction = predict(learner_20, X_Test);
+    
+    % Store the MSE of the training data
+    MSE_Training_Matrix(k, 1) = mse(learner_20,Xtr, Ytr);  % not sure if this is what is required
+    % Store the MSE of the predictions
+    MSE_Test_Matrix(k, 1) = mse(learner_20,X_Test, Y_Test);
+    
+    % Create a learner for all of the data
+    learner_all_training = knnRegress(k, Xtr, Ytr);    
+    
+    % Store the MSE of the training data
+    MSE_Training_Matrix(k, 2) = mse(learner_all_training,Xtr, Ytr);  % not sure if this is what is required
+    % Store the MSE of the predictions
+    MSE_Test_Matrix(k, 2) = mse(learner_all_training,X_Test, Y_Test);
+    
+    
+   
+    Cross_Val_Training_MSE = 0;
+    Cross_Val_Testing_MSE = 0;
+    for i=1:4
+        
+        % Find the index to split the training data set
+        start_index = 20*(i - 1) + 1;       % 1:20,21:40,41:60,61:80
+        end_index = start_index + 19;
+        Test_Data_Range = start_index:end_index;
+        
+        % Split the training data
+        Cross_Val_Testing_X = Xtr(Test_Data_Range);
+        Cross_Val_Testing_Y = Ytr(Test_Data_Range);
+        Cross_Val_Training_X = Xtr(setdiff(1:80, Test_Data_Range));
+        Cross_Val_Training_Y = Ytr(setdiff(1:80, Test_Data_Range));
+        
+        % Create a learner using this data
+        learner_Cross_Val = knnRegress(k, Cross_Val_Training_X, Cross_Val_Training_Y);
+        
+        % Calculate the mse
+        training_mse = mse(learner_Cross_Val,Cross_Val_Training_X, Cross_Val_Training_Y);
+        testing_mse = mse(learner_Cross_Val,Cross_Val_Testing_X, Cross_Val_Testing_Y);
+        
+        Cross_Val_Training_MSE = Cross_Val_Training_MSE + training_mse;
+        Cross_Val_Testing_MSE = Cross_Val_Testing_MSE + training_mse;
+
+    end
+    
+    MSE_Training_Matrix(k, 3) = Cross_Val_Training_MSE / 4.0;
+    MSE_Test_Matrix(k, 3) = Cross_Val_Testing_MSE / 4.0;
+end
+
+% Plot training data
+figure('name', 'kNN Training MSE');
+
+loglog(1:100, MSE_Training_Matrix(:, 1),'r');
+hold on;
+loglog(1:100, MSE_Training_Matrix(:, 2),'b');
+loglog(1:100, MSE_Training_Matrix(:, 3),'g');
+grid on
+xlabel('K');
+ylabel('Mean Squared Error');
+legend('20 Training Data Points', 'All Training Data Points', 'Cross Validation');
+
+% Plot Test data
+figure('name', 'kNN Test MSE');
+
+loglog(1:100, MSE_Test_Matrix(:, 1),'r');
+hold on;
+grid on;
+loglog(1:100, MSE_Test_Matrix(:, 2),'b');
+loglog(1:100, MSE_Test_Matrix(:, 3),'g');
+
+xlabel('K');
+ylabel('Mean Squared Error');
+legend('20 Training Data Points', 'All Training Data Points', 'Cross Validation');
+
 
