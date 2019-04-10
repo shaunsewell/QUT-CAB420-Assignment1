@@ -365,4 +365,17 @@ title('B Data with Decision Boundary');
 % reporting the error rate of the classifier in the previous part on both
 % data sets A and B. (The error rate on data set A should be ? 0.0505.)
 
+% Data set A
+Y_Predictions_A = predict(learner,XA);
 
+classification_error_A = numel(find(Y_Predictions_A~=YA));
+final_classifiaction_error_A = classification_error_A/size(YA,1); % = 0.0505
+disp(strcat({'The error rate for class A is:'},...
+    {' '},{num2str(final_classifiaction_error_A,' %.4f')}));
+
+Y_Predictions_B = predict(learner,XB);
+
+classification_error_B = numel(find(Y_Predictions_B~=YB));
+final_classifiaction_error_B = classification_error_B/size(YA,1);
+disp(strcat({'The error rate for class A is:'},...
+    {' '},{num2str(final_classifiaction_error_B,' %.4f')}));
