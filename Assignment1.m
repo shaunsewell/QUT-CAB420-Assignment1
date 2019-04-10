@@ -219,3 +219,132 @@ ylabel('Mean Squared Error');
 legend('20 Training Data Points', 'All Training Data Points', 'Cross Validation');
 
 
+%% 4. Nearest Neighbor Classifiers 
+% (a) Plot the data by their feature values, using the class value to
+% select the color.
+
+% Load the data
+iris = load('data/iris.txt');
+pi = randperm(size(iris, 1));
+Y = iris(pi, 5); X = iris(pi, 1:2);
+
+% Plot the feature values
+figure('Name','Feature Values of Iris Dataset');
+hold on;
+colours = unique(Y);
+for colour = 1:length(colours)
+    
+    RGB_Vector = [0, 0, 0];
+    RGB_Vector(colour) = 1;
+    feature_indicies = find(Y==colours(colour));
+    feature_points = X(feature_indicies, :);
+    feature_point_x = feature_points(1:end, 1);
+    feature_point_y = feature_points(1:end, 2);
+    scatter(feature_point_x, feature_point_y, [], RGB_Vector, 'filled');
+end
+
+legend('Class 0', 'Class 1', 'Class 2');
+title('Feature Values of Iris Dataset');
+hold off;
+
+% (b) Use the provided ?knnClassify ?class to learn a 1-nearest-neighbor
+% predictor. Use the function class2DPlot(learner,X,Y)? to plot the
+% decision regions and training data together.
+
+iris_knn_learner_1 = knnClassify(1, X, Y);
+class2DPlot(iris_knn_learner_1,X,Y);
+title('1-nearest-neighbour predictor');
+
+% (c) Do the same thing for several values of k (say, [3, 10, 30]) and
+% comment on their appearance.
+
+iris_k_values_small = [3, 10, 30];
+
+for k = iris_k_values_small
+    iris_knn_learner = knnClassify(k, X, Y);
+    class2DPlot(iris_knn_learner,X,Y);
+    title(strcat(int2str(iris_k_values(index)), '-nearest-neighbour predictor'));
+end
+
+% d) Now split the data into an 80/20 training/validation split. For k =
+% [1, 2, 5, 10, 50, 100, 200], learn a model on the 80% and calculate its
+% performance (# of data classified incorrectly) on the validation data.
+
+% Split X and Y into training and Validation sets
+iris_training_x = X(1:118, 1:end);  % 118 is approx 80%
+iris_training_y = Y(1:118);
+
+iris_val_x = X(119:end, 1:end);
+iris_val_y = Y(119:end);
+
+% Define the K values to test
+iris_k_values_large = [1, 2, 5, 10, 50, 100, 200];
+errors = [];
+
+for k = iris_k_values_large
+    % Train a model
+    iris_knn_learner = knnClassify(k, iris_training_x, iris_training_y); 
+    % Make some predictions
+    prediction = predict(iris_knn_learner, iris_val_x); 
+    % Measure the errors in the predictions
+    errors = [errors, numel(find(prediction~=iris_val_y))];   
+    %hold on;
+end
+
+figure('Name','Performace of k'); 
+plot(iris_k_values_large, errors,'-*')
+title('Performance of k');
+xlabel('Value of k')
+ylabel('Number of incorrect predictions')
+
+%% 5. Perceptrons and Logistic Regression
+
+% Load the data
+iris = load('data/iris.txt');
+X = iris(:,1:2); Y=iris(:,end); 
+[X, Y] = shuffleData(X,Y); % Randomise
+X = rescale(X);
+%Class 0 vs 1
+XA = X(Y<2,:); YA=Y(Y<2);
+%Class 1 vs 2
+XB = X(Y>0,:); YB=Y(Y>0);
+
+% (a) Show the two classes in a scatter plot and verify that one is
+% linearly separable while the other is not.
+
+figure('Name','Class 0 vs 1');
+hold on;
+% find members of Class 0 and plot them
+index_class_zero = find(YA==0);
+x_points_class_zero = XA(index_class_zero, 1:end);
+scatter(x_points_class_zero(:, 1), x_points_class_zero(:, 2));
+
+% Find memebers of Class 1 and plot them
+index_class_one = find(YA==1);
+x_points_class_one = XA(index_class_one, 1:end);
+scatter(x_points_class_one(:, 1), x_points_class_one(:, 2));
+title('Class 0 vs 1');
+hold off;
+
+figure('Name','Class 1 vs 2');
+hold on;
+
+% Already have class one so just need to plot it
+scatter(x_points_class_one(:, 1), x_points_class_one(:, 2));
+
+% Find memebers of Class 2 and plot them
+index_class_two = find(YB==2);
+x_points_class_two = XB(index_class_two, 1:end);
+scatter(x_points_class_two(:, 1), x_points_class_two(:, 2));
+title('Class 1 vs 2');
+hold off;
+
+
+% (b) Write ( fill in) the functio?n ?@logisticClassify2/plot2DLinear.m so
+% that it plots the two classes of data in different colors, along with the
+% decision boundary (a line). Include the listing of your code in your
+% report. To demo your function plot the decision boundary corresponding to
+% the classifier sign(.5 + 1x 1 + .25x 2) along with the A data, and again
+% with the B data.
+
+
