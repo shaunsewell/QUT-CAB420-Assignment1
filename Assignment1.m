@@ -317,26 +317,28 @@ hold on;
 % find members of Class 0 and plot them
 index_class_zero = find(YA==0);
 x_points_class_zero = XA(index_class_zero, 1:end);
-scatter(x_points_class_zero(:, 1), x_points_class_zero(:, 2));
+scatter(x_points_class_zero(:, 1), x_points_class_zero(:, 2), 'filled');
 
 % Find memebers of Class 1 and plot them
 index_class_one = find(YA==1);
 x_points_class_one = XA(index_class_one, 1:end);
-scatter(x_points_class_one(:, 1), x_points_class_one(:, 2));
+scatter(x_points_class_one(:, 1), x_points_class_one(:, 2), 'r', 'filled');
 title('Class 0 vs 1');
+legend('Class 0', 'Class 1', 'FontSize', 12);
 hold off;
 
 figure('Name','Class 1 vs 2');
 hold on;
 
 % Already have class one so just need to plot it
-scatter(x_points_class_one(:, 1), x_points_class_one(:, 2));
+scatter(x_points_class_one(:, 1), x_points_class_one(:, 2), 'r', 'filled');
 
 % Find memebers of Class 2 and plot them
 index_class_two = find(YB==2);
 x_points_class_two = XB(index_class_two, 1:end);
-scatter(x_points_class_two(:, 1), x_points_class_two(:, 2));
+scatter(x_points_class_two(:, 1), x_points_class_two(:, 2), 'filled');
 title('Class 1 vs 2');
+legend('Class 1', 'Class 2', 'FontSize', 12);
 hold off;
 
 
@@ -346,5 +348,21 @@ hold off;
 % report. To demo your function plot the decision boundary corresponding to
 % the classifier sign(.5 + 1x 1 + .25x 2) along with the A data, and again
 % with the B data.
+
+learner=logisticClassify2(); % create "blank" learner
+learner=setClasses(learner, unique(YA)); % define class labels using YA or YB
+wts = [0.5 1 -0.25]; 
+learner=setWeights(learner, wts); % set the learner's parameters
+
+plot2DLinear(learner, XA, YA);
+title('A Data with Decision Boundary');
+
+plot2DLinear(learner, XB, YB);
+title('B Data with Decision Boundary');
+
+% (c) Complete the ?predict.m function to make predictions for your linear
+% classifier. Again, verify that your function works by computing &
+% reporting the error rate of the classifier in the previous part on both
+% data sets A and B. (The error rate on data set A should be ? 0.0505.)
 
 
