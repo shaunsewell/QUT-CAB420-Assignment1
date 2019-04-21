@@ -14,9 +14,9 @@ function obj = train(obj, X, Y, varargin)
   [n,d] = size(X);            % d = dimension of data; n = number of training data
 
   % default options:
-  plotFlag = true; 
+  plotFlag = false; 
   init     = []; 
-  stopIter = 1000;
+  stopIter = 100; % Was 1000, reduced due to the whines of my laptop.
   stopTol  = -1;
   reg      = 0.0;
   stepsize = 1;
@@ -30,9 +30,9 @@ function obj = train(obj, X, Y, varargin)
     case 'stoptol',   stopTol  = varargin{i+1}; i=i+1;   % stopping tolerance on surrogate loss
     case 'reg',       reg      = varargin{i+1}; i=i+1;   % L2 regularization
     case 'stepsize',  stepsize = varargin{i+1}; i=i+1;   % initial stepsize
-    end;
+    end
     i=i+1;
-  end;
+  end
 
   X1    = [ones(n,1), X];     % make a version of training data with the constant feature
 
@@ -52,7 +52,10 @@ function obj = train(obj, X, Y, varargin)
 iter=1; Jsur=zeros(1,stopIter); J01=zeros(1,stopIter); done=0; 
 while (~done) 
   step = stepsize/iter;               % update step-size and evaluate current loss values
-  Jsur(iter) = inf;   %%% TODO: compute surrogate (neg log likelihood) loss
+  
+  %%% TODO: compute surrogate (neg log likelihood) loss
+  wts_Square = (obj.wts.^2);
+  Jsur(iter) = mean((-Y .* log(logistic(obj, X))) - ((1 - Y) .* log(1 - logistic(obj, X))) + reg * sum(wts_Square));   
   J01(iter) = err(obj,X,Yin);
 
   if (plotFlag), switch d,            % Plots to help with visualization
@@ -60,23 +63,34 @@ while (~done)
     case 2, fig(2); plot2DLinear(obj,X,Yin);  %  for 2D data, just the data and decision boundary
     otherwise, % no plot for higher dimensions... %  higher dimensions visualization is hard
   end; end;
-  fig(1); semilogx(1:iter, Jsur(1:iter),'b-',1:iter,J01(1:iter),'g-'); drawnow;
-
+  fig(100); 
+  semilogx(1:iter, Jsur(1:iter),'b-',1:iter,J01(1:iter),'g-'); 
+  legend('Surrogate Loss', 'Error Rate');
+  xlabel('Iterations');
+  ylabel('Loss/Error');
+  drawnow;
+  
+  
   for j=1:n,
     % Compute linear responses and activation for data point j
     %%% TODO ^^^
-
+    sigma = logistic(obj,X(j,:));
     % Compute gradient:
     %%% TODO ^^^
-
-    obj.wts = obj.wts - step * grad;      % take a step down the gradient
-  end;
+    grad = (Y(j)-sigma) * -X1(j,:); + 2 * reg * obj.wts;
+    
+    obj.wts = obj.wts - step * grad;      % take a step down the gradient .  
+  end
 
   done = false;
   %%% TODO: Check for stopping conditions
-
+    
+  J_Change = mean(-Y .* log(logistic(obj, X)) - (1 - Y) .* log(1 - logistic(obj, X)) + reg * obj.wts * obj.wts');  
+  if (iter == stopIter || abs(J_Change - Jsur(iter)) < stopTol)
+    done = true;
+  end
   wtsold = obj.wts;
   iter = iter + 1;
-end;
+end
 
 

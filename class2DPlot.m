@@ -1,6 +1,6 @@
 function class2DPlot(learner,X,Y)
 
-figure; plot(X(:,1),X(:,2),'k.');
+%figure; plot(X(:,1),X(:,2),'k.');
 ax=axis;  % get current plot appearance
 N=256;    % density of evaluation
 

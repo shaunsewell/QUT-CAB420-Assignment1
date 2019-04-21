@@ -14,6 +14,7 @@ figure('name', 'Scatter Plot of Training Data');
 plot (Xtr, Ytr, 'bo'); 
 xlabel('X');
 ylabel('Y');
+legend('Training Data');
 title('Scatter Plot of Training Data');
 
 % (b) Create a linear regression learner using the above functions. Plot it on
@@ -27,7 +28,7 @@ yline = predict( regress_learner , polyx (xline ,2) );
 
 % Plot predictions
 figure('name', 'Quadratic linear regression predictor');
-plot(xline, yline, 'ro');
+plot(xline, yline, 'r*');
 % Plot training data
 hold on
 plot (Xtr, Ytr, 'bo');
@@ -50,7 +51,7 @@ yline = predict( septic_learner , polyx (xline ,7) );
 
 % Plot predictions
 figure('name', "Septic linear regression predictor");
-plot(xline, yline, 'ro');
+plot(xline, yline, 'r*');
 hold on 
 % Plot training data
 plot (Xtr, Ytr, 'bo');
@@ -109,7 +110,8 @@ K_Values = [1, 2, 3, 5, 10, 50];
 
 % Plot training data
 figure('name', 'kNN Regression predictor');
-plot (Xtr, Ytr, 'bo');
+plot (Xtr, Ytr, 'ks');
+title('kNN Regression predictor')
 legend('Training Data','location','Northwest');
 xlim([0 1]);
 ylim([0 4.5]);
@@ -125,7 +127,7 @@ for i=K_Values
     
     % Plot the current models predictions
     yline = predict(learner, xline);
-    plot(xline, yline, '', 'DisplayName', strcat('K=', num2str(i)));
+    plot(xline, yline, '', 'DisplayName', strcat('K=', num2str(i)),'LineWidth',2);
 end
 
 %% 3. Hold-out and Cross-validation
@@ -133,35 +135,67 @@ end
 % (a) compute the MSE of the test data on a model trained on only the first
 % 20 training data examples for k = 1, 2, 3, . . . , 100. Plot both train
 % and test MSE versus k on a log-log scale first 20 training points
-
 X_Training_20 = Xtr(1:20, :); Y_Training_20 = Ytr(1:20, :);
-
-% Matrix for storing the results
-MSE_Training_Matrix = zeros(100,3);
-MSE_Test_Matrix = zeros(100, 3);
+MSE_Training_20 = zeros(100,1);
+MSE_Test_20 = zeros(100,1);
 
 for k=1:100
-    
-    % Create model based on the first 20 training samples
     learner_20 = knnRegress(k, X_Training_20, Y_Training_20);
-    % Generate some predictions based on the previous model
-    %Y_Prediction = predict(learner_20, X_Test);
-    
-    % Store the MSE of the training data
-    MSE_Training_Matrix(k, 1) = mse(learner_20,Xtr, Ytr);  % not sure if this is what is required
+    MSE_Training_20(k, 1) = mse(learner_20,Xtr, Ytr);
     % Store the MSE of the predictions
-    MSE_Test_Matrix(k, 1) = mse(learner_20,X_Test, Y_Test);
-    
-    % Create a learner for all of the data
-    learner_all_training = knnRegress(k, Xtr, Ytr);    
-    
-    % Store the MSE of the training data
-    MSE_Training_Matrix(k, 2) = mse(learner_all_training,Xtr, Ytr);  % not sure if this is what is required
+    MSE_Test_20(k, 1) = mse(learner_20,X_Test, Y_Test);
+end
+
+figure('name', 'MSE Comparison 20');
+loglog(1:100, MSE_Training_20(:, 1),'r', 'LineWidth', 1.5);
+hold on;
+loglog(1:100, MSE_Test_20(:, 1),'--r', 'LineWidth', 1.5);
+title('MSE using limited training set');
+xlabel('K');
+ylabel('Mean Squared Error');
+legend('Training', 'Test');
+hold off;
+
+% (b) Repeat, but use all the training data. What happened? Contrast with
+% your results from Problem 1 (hint: which direction is ?complexity? in
+% this picture?).
+
+MSE_Training_All = zeros(100,1);
+MSE_Test_All = zeros(100,1);
+
+for k=1:100
+    learner_All = knnRegress(k, Xtr, Ytr);
+    MSE_Training_All(k, 1) = mse(learner_All,Xtr, Ytr);
     % Store the MSE of the predictions
-    MSE_Test_Matrix(k, 2) = mse(learner_all_training,X_Test, Y_Test);
-    
-    
-   
+    MSE_Test_All(k, 1) = mse(learner_All,X_Test, Y_Test);
+end
+
+figure('name', 'MSE Comparison');
+loglog(1:100, MSE_Training_All(:, 1),'b', 'LineWidth', 1.5);
+hold on;
+loglog(1:100, MSE_Test_All(:, 1),'--b', 'LineWidth', 1.5);
+title('MSE using entire training set');
+xlabel('K');
+ylabel('Mean Squared Error');
+legend('Training', 'Test');
+hold off;
+
+
+%(c) Using ?only the training data,? estimate the curve using 4-fold
+%cross-validation. Split the training data into two parts, indices 1:20 and
+%21:140; use the larger of the two as training data and the smaller as
+%testing data, then repeat three more times with different sets of 20 and
+%average the MSE. Plot this together with (a) and (b). Use different colors
+%or marks to differentiate three scenarios. Discus why might we need to use
+%this technique via comparing curves of three scenario?
+
+
+
+% Matrix for storing the results
+MSE_Training_CV = zeros(100,1);
+MSE_Test_CV = zeros(100, 1);
+
+for k=1:100
     Cross_Val_Training_MSE = 0;
     Cross_Val_Testing_MSE = 0;
     for i=1:4
@@ -189,36 +223,27 @@ for k=1:100
 
     end
     
-    MSE_Training_Matrix(k, 3) = Cross_Val_Training_MSE / 4.0;
-    MSE_Test_Matrix(k, 3) = Cross_Val_Testing_MSE / 4.0;
+    MSE_Training_CV(k, 1) = Cross_Val_Training_MSE / 4.0;
+    MSE_Test_CV(k, 1) = Cross_Val_Testing_MSE / 4.0;
 end
 
+
+
 % Plot training data
-figure('name', 'kNN Training MSE');
-
-loglog(1:100, MSE_Training_Matrix(:, 1),'r');
+figure('name', 'kNN MSE Comparison');
+loglog(1:100, MSE_Training_20(:, 1),'r', 'LineWidth', 1.5);
 hold on;
-loglog(1:100, MSE_Training_Matrix(:, 2),'b');
-loglog(1:100, MSE_Training_Matrix(:, 3),'g');
+loglog(1:100, MSE_Test_20(:, 1),'--r', 'LineWidth', 1.5);
+loglog(1:100, MSE_Training_All(:, 1),'b', 'LineWidth', 1.5);
+loglog(1:100, MSE_Test_All(:, 1),'--b', 'LineWidth', 1.5);
+loglog(1:100, MSE_Training_CV(:, 1),'g', 'LineWidth', 1.5);
+loglog(1:100, MSE_Test_CV(:, 1),'--k', 'LineWidth', 2);
 grid on
+title('kNN MSE Comparison');
 xlabel('K');
 ylabel('Mean Squared Error');
-legend('20 Training Data Points', 'All Training Data Points', 'Cross Validation');
-
-% Plot Test data
-figure('name', 'kNN Test MSE');
-
-loglog(1:100, MSE_Test_Matrix(:, 1),'r');
-hold on;
-grid on;
-loglog(1:100, MSE_Test_Matrix(:, 2),'b');
-loglog(1:100, MSE_Test_Matrix(:, 3),'g');
-
-xlabel('K');
-ylabel('Mean Squared Error');
-legend('20 Training Data Points', 'All Training Data Points', 'Cross Validation');
-
-
+legend('20 Training Points', '20 Training Points Test', 'All Training Points', 'All Training Points Test', 'Cross Validation', 'Cross Validation Test', 'Location', 'southeast');
+hold off;
 %% 4. Nearest Neighbor Classifiers 
 % (a) Plot the data by their feature values, using the class value to
 % select the color.
@@ -247,7 +272,7 @@ legend('Class 0', 'Class 1', 'Class 2');
 title('Feature Values of Iris Dataset');
 hold off;
 
-% (b) Use the provided ?knnClassify ?class to learn a 1-nearest-neighbor
+% (b) Use the provided knnClassify class to learn a 1-nearest-neighbor
 % predictor. Use the function class2DPlot(learner,X,Y)? to plot the
 % decision regions and training data together.
 
@@ -263,8 +288,11 @@ iris_k_values_small = [3, 10, 30];
 for k = iris_k_values_small
     iris_knn_learner = knnClassify(k, X, Y);
     class2DPlot(iris_knn_learner,X,Y);
-    title(strcat(int2str(iris_k_values(index)), '-nearest-neighbour predictor'));
+    title(strcat(int2str(k), '-nearest-neighbour predictor'));
 end
+%%
+%
+
 
 % d) Now split the data into an 80/20 training/validation split. For k =
 % [1, 2, 5, 10, 50, 100, 200], learn a model on the 80% and calculate its
@@ -349,33 +377,67 @@ hold off;
 % the classifier sign(.5 + 1x 1 + .25x 2) along with the A data, and again
 % with the B data.
 
-learner=logisticClassify2(); % create "blank" learner
-learner=setClasses(learner, unique(YA)); % define class labels using YA or YB
+learnerB=logisticClassify2(); % create "blank" learner
+learnerB=setClasses(learnerB, unique(YA)); % define class labels using YA or YB
 wts = [0.5 1 -0.25]; 
-learner=setWeights(learner, wts); % set the learner's parameters
+learnerB=setWeights(learnerB, wts); % set the learner's parameters
 
-plot2DLinear(learner, XA, YA);
+plot2DLinear(learnerB, XA, YA);
 title('A Data with Decision Boundary');
 
-plot2DLinear(learner, XB, YB);
+plot2DLinear(learnerB, XB, YB);
 title('B Data with Decision Boundary');
 
 % (c) Complete the ?predict.m function to make predictions for your linear
 % classifier. Again, verify that your function works by computing &
 % reporting the error rate of the classifier in the previous part on both
-% data sets A and B. (The error rate on data set A should be ? 0.0505.)
+% data sets A and B. (The error rate on data set A should be 0.0505.)
 
 % Data set A
-Y_Predictions_A = predict(learner,XA);
+Y_Predictions_A = predict(learnerB,XA);
 
 classification_error_A = numel(find(Y_Predictions_A~=YA));
 final_classifiaction_error_A = classification_error_A/size(YA,1); % = 0.0505
 disp(strcat({'The error rate for class A is:'},...
     {' '},{num2str(final_classifiaction_error_A,' %.4f')}));
 
-Y_Predictions_B = predict(learner,XB);
+Y_Predictions_B = predict(learnerB,XB);
 
 classification_error_B = numel(find(Y_Predictions_B~=YB));
 final_classifiaction_error_B = classification_error_B/size(YA,1);
 disp(strcat({'The error rate for class A is:'},...
     {' '},{num2str(final_classifiaction_error_B,' %.4f')}));
+
+% (e) Complete your ?train.m ?function to perform stochastic gradient
+% descent on the logistic loss function.
+
+% (f) Run your logistic regression classifier on both data sets (A and B);
+% for this problem, use no regularization (? = 0). Describe your parameter
+% choices (stepsize, etc.) and show a plot of both the convergence of the
+% surrogate loss and error rate, and a plot of the final converged
+% classifier with the data
+
+learner_A=logisticClassify2(); % create "blank" learner
+learner_A=setClasses(learner_A, unique(YA)); % define class labels using YA or YB
+wts = [0.5 1 -0.25]; 
+learner_A=setWeights(learner_A, wts); % set the learner's parameters
+
+train(learner_A, XA, YA);
+
+figure();
+plotClassify2D(learner_A, XA, YA);
+legend('Setosa', 'Versicolour', 'FontSize', 12);
+xlabel('Sepal Length')
+ylabel('Sepal Width')
+
+% new_YB = YB - 1;
+% learner_B=logisticClassify2(); % create "blank" learner
+% learner_B=setClasses(learner_B, unique(YA)); % define class labels using YA or YB
+% wts = [0.5 1 -0.25]; 
+% learner_B=setWeights(learner_B, wts); % set the learner's parameters
+% train(learner_B, XB, new_YB);
+% 
+% % Plot final converged classifier decision boundaries.
+% figure();
+% plotClassify2D(learner_B, XB, new_YB);
+% legend('Class 1', 'Class 2', 'FontSize', 12);
