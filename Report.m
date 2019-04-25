@@ -259,6 +259,7 @@ hold off;
 %   decreases where as the Training set MSE rapidly increases. Once the K
 %   value reaches 20 the MSE of both sets plateaus because K cannot be
 %   larger than the training set.
+
 %%
 % *(b) Repeat, but use all the training data. What happened? Contrast with
 % your results from Problem 1 (hint: which direction is complexity in
@@ -358,6 +359,7 @@ hold off;
 % testing data is minimised. This technique is needed given the inverted
 % nature of the results from (a) and (b). 
 %
+
 %% *4. Nearest Neighbor Classifiers*
 % *(a) Plot the data by their feature values, using the class value to
 % select the color.*
@@ -421,7 +423,6 @@ end
 % This shows an increasing level of underfitting on the data set.
 % Conversely the lower K values show a high level of overfitting as can be
 % seen in the K = 1 graph in which every value has been correctly labeled.
-%
 %
 
 %%
@@ -510,12 +511,12 @@ hold off;
 
 %%
 % *(b) Write (fill in) the function @logisticClassify2/plot2DLinear.m so that
-% it plots the two classes of data in dierent colors, along with the
+% it plots the two classes of data in different colors, along with the
 % decision boundary (a line). Include the listing of your code in your
 % report. To demo your function plot the decision boundary corresponding
-% to the classifier 
+% to the classifier:*
 %
-% $$ sign(.5 + 1x_1 - .25x_2) $$*
+% $$sign(.5 + 1x_1 - .25x_2)$$
 %
 % <include>@logisticClassify2/plot2Dlinear.m</include>
 
@@ -535,6 +536,7 @@ title('B Data with Decision Boundary');
 xlabel('Sepal Length')
 ylabel('Sepal Width')
 legend('Versicolour', 'Virginica', 'FontSize', 12);
+
 %%
 % *(c) Complete the predict.m function to make predictions for your linear
 % classifier. Note that, in my code, (c) the two classes are stored in the
@@ -632,7 +634,7 @@ learner_A=setClasses(learner_A, unique(YA)); % define class labels using YA or Y
 wts = [0.5 1 -0.25]; 
 learner_A=setWeights(learner_A, wts); % set the learner's parameters
 
-train(learner_A, XA, YA);
+learner_A = train(learner_A, XA, YA);
 
 figure();
 plotClassify2D(learner_A, XA, YA);
@@ -647,7 +649,7 @@ learner_B=logisticClassify2(); % create "blank" learner
 learner_B=setClasses(learner_B, unique(YA)); % define class labels using YA or YB
 wts = [0.5 1 -0.25]; 
 learner_B=setWeights(learner_B, wts); % set the learner's parameters
-train(learner_B, XB, new_YB);
+learner_B = train(learner_B, XB, new_YB);
 
 % Plot final converged classifier decision boundaries.
 figure();
@@ -662,4 +664,10 @@ ylabel('Sepal Width')
 % number of iterations. The iterations where reduced from 1000 to 100 as
 % there was minimal inprovement in the error rate beyond 100.
 %
+
+%%
+%
+% *(g) Implement the mini batch gradient descent on the logistic function*
+%
+% <include>@logisticClassify2/create_mini_batches.m</include>
 %

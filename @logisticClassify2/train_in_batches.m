@@ -61,15 +61,23 @@ while (~done)
     otherwise, % no plot for higher dimensions... %  higher dimensions visualization is hard
   end; end;
   fig(1); semilogx(1:iter, Jsur(1:iter),'b-',1:iter,J01(1:iter),'g-'); drawnow;
-  mini_batches = %%% TODO call your create_mini_batches function with batchsize = 11
-  for j=1:number_of_batches,
+  
+  %%%call your create_mini_batches function with batchsize = 11
+  mini_batches = create_mini_batches(obj ,X, Yin,11);
+  number_of_batches = size(X, 1) / batch_size;
+  
+  for j=1:number_of_batches
     % Compute linear responses and activation for minibatch j
     %%% TODO ^^^
-
+    sigma = logistic(obj,mini_batches(:,1:2,j));
+    
     % Compute gradient:
     %%% TODO ^^^
-
-    obj.wts = obj.wts - step * grad;      % take a step down the gradient
+    mini_batches(:, 1:2, j)-sigma
+    -mini_batches(:,1:2,j)
+    grad = (mini_batches(:, 1:2, j)-sigma) .* -mini_batches(:,1:2,j) ;%+ 2 * reg * obj.wts;
+    
+    obj.wts = obj.wts - grad;      % take a step down the gradient
   end;
 
   done = false;

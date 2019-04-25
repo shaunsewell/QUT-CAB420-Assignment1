@@ -422,7 +422,7 @@ learner_A=setClasses(learner_A, unique(YA)); % define class labels using YA or Y
 wts = [0.5 1 -0.25]; 
 learner_A=setWeights(learner_A, wts); % set the learner's parameters
 
-train(learner_A, XA, YA);
+learner_A = train(learner_A, XA, YA);
 
 figure();
 plotClassify2D(learner_A, XA, YA);
@@ -430,14 +430,17 @@ legend('Setosa', 'Versicolour', 'FontSize', 12);
 xlabel('Sepal Length')
 ylabel('Sepal Width')
 
-% new_YB = YB - 1;
-% learner_B=logisticClassify2(); % create "blank" learner
-% learner_B=setClasses(learner_B, unique(YA)); % define class labels using YA or YB
-% wts = [0.5 1 -0.25]; 
-% learner_B=setWeights(learner_B, wts); % set the learner's parameters
-% train(learner_B, XB, new_YB);
-% 
-% % Plot final converged classifier decision boundaries.
-% figure();
-% plotClassify2D(learner_B, XB, new_YB);
-% legend('Class 1', 'Class 2', 'FontSize', 12);
+new_YB = YB - 1;
+learner_B=logisticClassify2(); % create "blank" learner
+learner_B=setClasses(learner_B, unique(YA)); % define class labels using YA or YB
+wts = [0.5 1 -0.25]; 
+learner_B=setWeights(learner_B, wts); % set the learner's parameters
+learner_B = train(learner_B, XB, new_YB);
+
+% Plot final converged classifier decision boundaries.
+figure();
+plotClassify2D(learner_B, XB, new_YB);
+legend('Class 1', 'Class 2', 'FontSize', 12);
+
+% (g)
+
